@@ -43,6 +43,7 @@
     <property name="locale" ref="requestLocale" />
 	<property name="messageLocator" ref="messageLocator" />
 	<property name="messages" ref="targettedMessageList"/>
+	<property name="inotadoService" ref="edu.wfu.inotado.api.InotadoService"/>
    </bean>
 
    <bean class="org.sakaiproject.blogwow.tool.producers.HomeProducer">

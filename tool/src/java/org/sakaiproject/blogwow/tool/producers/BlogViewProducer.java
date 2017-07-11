@@ -42,6 +42,10 @@ import uk.org.ponder.rsf.view.ComponentChecker;
 import uk.org.ponder.rsf.view.ViewComponentProducer;
 import uk.org.ponder.rsf.viewstate.ViewParameters;
 import uk.org.ponder.rsf.viewstate.ViewParamsReporter;
+import edu.wfu.inotado.api.InotadoService;
+import edu.wfu.inotado.api.WinProfile;
+import edu.wfu.inotado.api.WinProfileRequest;
+import edu.wfu.inotado.api.WinProfileResponse;
 
 public class BlogViewProducer implements ViewComponentProducer, ViewParamsReporter {
 
@@ -58,6 +62,7 @@ public class BlogViewProducer implements ViewComponentProducer, ViewParamsReport
     private Locale locale;
     private ExternalLogic externalLogic;
     private MessageLocator messageLocator;
+    private InotadoService inotadoService;
 
     private TargettedMessageList messages;
 	public void setMessages(TargettedMessageList messages) {
@@ -124,6 +129,22 @@ public class BlogViewProducer implements ViewComponentProducer, ViewParamsReport
                 .getProfileImageUrl(blog.getOwnerId()) : blog.getImageUrl();
         if ("".equals(profileImageUrl)) {
             profileImageUrl = null; // this will use the default in the template
+        }
+		
+		//get the WIN photo if no profile image found
+        if(this.inotadoService.isToolEnabled() && profileImageUrl == null){
+        	List<String> users = new ArrayList<String>();
+        	String id = blog.getOwnerId();
+        	users.add(id);
+        	WinProfileRequest winRequest = this.inotadoService.createWinProfileRequestByInternalIds(users);
+        	WinProfileResponse winResponse = this.inotadoService.getWinProfiles(winRequest);
+        	if(winResponse != null){
+				Map<String,WinProfile> profiles = winResponse.getProfiles();
+				WinProfile winProfile = profiles.get(this.inotadoService.getUserIdFromInternalId(id));
+				if(winProfile!=null && winProfile.getImageUrl()!=null){
+					profileImageUrl = winProfile.getImageUrl();
+				}				
+			}        	
         }
         UILink.make(blogdiv, "profile-image", profileImageUrl);
 
@@ -322,4 +343,8 @@ public class BlogViewProducer implements ViewComponentProducer, ViewParamsReport
     public void setMessageLocator(MessageLocator messageLocator) {
         this.messageLocator = messageLocator;
     }
+
+	public void setInotadoService(InotadoService inotadoService) {
+		this.inotadoService = inotadoService;
+	}
 }
